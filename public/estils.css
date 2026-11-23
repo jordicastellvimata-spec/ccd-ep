@@ -16,3 +16,19 @@
 .universidades a:hover span{text-decoration:underline}.universidades img{width:100%;max-width:165px;height:74px;object-fit:contain}.otro-organismo{max-width:56rem}
 @media(max-width:720px){.direccion,.grupos{grid-template-columns:1fr}nav{row-gap:.6rem}.universidades{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .enlace-grupo{display:inline-block;margin-top:1rem;font-weight:600;color:var(--green)}
+
+/* Identidad visual inspirada en Competences for Democratic Culture (2016). */
+:root{--ink:#243b40;--green:#477b80;--lime:#d8e5e5;--line:#c8d8d9;--muted:#95aeb0;--values:#d6b8cd;--attitudes:#9ccbd1;--skills:#bed9ba;--knowledge:#f0d0a5;font-family:Arial,Helvetica,sans-serif}
+body{background:#fff}header,footer{background:#315e63}h1,h2,.grupo h3{font-family:Arial,Helvetica,sans-serif;letter-spacing:-.035em;font-weight:700}h2{color:#315e63}.sobre,.ref,.enlace-grupo{color:#315e63}.accio{background:#315e63}.accio:hover{background:#477b80}a:focus-visible{outline-color:#9a5b33}
+.portada{display:block;position:relative;isolation:isolate;margin:0 calc((100% - 100vw)/2);padding:0;border:0;min-height:175svh;background:#477b80;color:white}
+.hero-sticky{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;isolation:isolate;padding:clamp(1.25rem,5vw,5rem);gap:clamp(1.2rem,4vh,2.6rem)}
+.hero-kicker{color:#fff;font-size:clamp(.75rem,1.4vw,.95rem);letter-spacing:.08em;text-transform:uppercase;position:relative;z-index:1}
+.portada h1{color:#fff;font-size:clamp(2.25rem,6.2vw,6.5rem);line-height:1.06;max-width:16ch;margin:0;text-wrap:balance;transform-origin:center center}
+.hero-scroll{font-size:.9rem;color:#fff;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:.45rem;position:relative;z-index:1}.hero-scroll span{font-size:1.6rem}.hero-scroll:hover{text-decoration:underline}.hero-scroll:focus-visible{outline-color:#fff}
+#projecte{border-bottom:1px solid var(--line)}
+.ambits article:nth-child(1){background:#f3e8ef}.ambits article:nth-child(2){background:#e7f3f4}.ambits article:nth-child(3){background:#edf4eb}.ambits article:nth-child(4){background:#fcf2e6}
+.ambits article:nth-child(1) b{color:#84516e}.ambits article:nth-child(2) b{color:#315e63}.ambits article:nth-child(3) b{color:#4f7549}.ambits article:nth-child(4) b{color:#94602c}
+.grupo:nth-child(1){border-top-color:var(--values)}.grupo:nth-child(2){border-top-color:var(--attitudes)}.grupo:nth-child(3){border-top-color:var(--skills)}.grupo:nth-child(4){border-top-color:var(--knowledge)}
+.personas small{color:#496367}.credito{background:#fff}
+@media(max-width:720px){.portada h1{font-size:clamp(2.25rem,9vw,4rem)}.portada{min-height:155svh}.hero-sticky{padding:1.4rem}}
+@media(prefers-reduced-motion:reduce){.portada{min-height:0}.hero-sticky{position:relative;height:auto;min-height:75svh}.portada h1{transform:none!important;filter:none!important;opacity:1!important}}
