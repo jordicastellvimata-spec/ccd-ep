@@ -16,6 +16,11 @@ jobs:
         with:
           node-version: 24
       - run: npm install
+      - name: Recuperar retratos de fuentes académicas verificables
+        continue-on-error: true
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 pillow
+          python scripts/refresh_portraits.py
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
