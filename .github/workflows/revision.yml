@@ -1,0 +1,33 @@
+name: Revisar fuentes fotográficas
+on:
+  push:
+    branches: [preparar-logotipos]
+    paths: ['.github/workflows/revision.yml']
+permissions: {}
+jobs:
+  fuentes:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip install requests beautifulsoup4
+      - shell: python
+        run: |
+          import requests, bs4, re, json, concurrent.futures
+          from urllib.parse import urljoin
+          pages = {"5":["https://museutapies.org/es/activitat/laboratorio-de-mediaciones/","https://culturacomunitaria.es/images/f/f2/AMECUM-Rehacer-Expandir-Mediacion-Cultural.pdf"],"6":["https://www.ujaen.es/departamentos/didcie/node/4396","https://investigacion.ujaen.es/investigadores/192101/colaboracion/investigador/4484744"],"8":["https://www.uji.es/institucional/estructura/personal/?p_profesor=9105"],"12":["https://www.angel-network.net/member/1162","https://die.udistrital.edu.co/comunidad/marta_estelles_frade","https://www.bera.ac.uk/person/marta-estelles"],"13":["https://brujula.ual.es/authors/3703.html"],"14":["https://ira.pucp.edu.pe/grupo-de-investigacion/grupo-historia-para-maestros/"],"15":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/carmen-rosa-garcia-ruiz/","https://www.uma.es/departments/teachers/cnMyUEZHZHFPdEc4MDNpWlhnSVZxZz09/facultad-de-ciencias-de-la-educacion/"],"16":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/elisa-navarro-medina/"],"17":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/nicolas-de-alba-fernandez/"],"18":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/noelia-perez-rodriguez/"],"19":["https://www.ipl.pt/agenda/lancamento-do-livro-de-alfredo-gomes-dias"],"20":["https://ceg.igot.ulisboa.pt/pessoas/maria-joao-hortas"],"21":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/jose-luis-zorrilla-luque/"],"24":["https://profesorado.unex.es/centro/pdi/?personid=15dfbf9f258b124bd24319767deb05f8"],"26":["https://sites.google.com/view/decerc-gm/eng/c%C3%B2pia-de-la-p%C3%A0gina-proyecto/c%C3%B2pia-de-la-p%C3%A0gina-equipo"],"27":["https://despecificas.unizar.es/personal/arasy-gonzalez-milea","https://janovas.unizar.es/sideral/sid900perfilPublico.faces?id=arasy-gonzalez-milea"],"30":["https://webs.uab.cat/gredics/miembros-del-equipo/"]}
+          def inspect(item):
+              i,url=item
+              try:
+                  r=requests.get(url,timeout=14)
+                  if r.status_code!=200 or 'html' not in r.headers.get('Content-Type',''): return [i,url,r.status_code,[]]
+                  doc=bs4.BeautifulSoup(r.content,'html.parser')
+                  rows=[]
+                  for tag in doc.select('meta[property="og:image"],img,[style*="url("]'):
+                      src=tag.get('data-src') or tag.get('src') or tag.get('content') or (re.findall(r'url\([\x22\x27]?([^\x22\x27)]+)',tag.get('style','')) or [''])[0]
+                      if not src or src.startswith('data:') or re.search(r'logo|footer|icono|avatar-default|sin-foto|/icon/|cabecera|facebook|loading|twitter|wp-smiley|banner-|/pixel|sello',src,re.I): continue
+                      parent=tag.parent.parent if tag.parent and tag.parent.parent else tag
+                      rows.append([urljoin(r.url,src),tag.get('alt','')[:85],parent.get_text(' ',strip=True)[:100]])
+                  return [i,url,200,rows[:100]]
+              except Exception as e: return [i,url,str(e)[:160],[]]
+          with concurrent.futures.ThreadPoolExecutor(12) as pool:
+              for row in pool.map(inspect,[(i,u) for i,urls in pages.items() for u in urls]):
+                  print('CANDIDATES='+json.dumps(row,ensure_ascii=True))
