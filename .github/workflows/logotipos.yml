@@ -19,7 +19,7 @@ jobs:
           from PIL import Image, ImageChops
           out = pathlib.Path('public/universidades')
           out.mkdir(exist_ok=True)
-          for name, url in [["uvic.jpg","https://www.umanresa.cat/sites/default/files/docs/logo-uvic-ucc.jpg"],["us.png","https://fcom.us.es/sites/fcom/files/inline-images/logoUS-H_sinfondo.png"]]:
+          for name, url in [["coe.png","https://www.coe.int/documents/5492562/301886140/COE%2BLogo%2BQuadri.png/dc8def23-e81e-5376-c9ca-a9f82f1a56d7?t=1781011554283"]]:
               try:
                   request = urllib.request.Request(url, headers={'User-Agent': 'CCD-EP academic project (https://github.com/jordicastellvimata-spec/ccd-ep)'})
                   with urllib.request.urlopen(request, timeout=15) as response:
@@ -31,7 +31,7 @@ jobs:
                   paper.paste(im, mask=im.getchannel('A'))
                   bounds = ImageChops.difference(paper, Image.new('RGB', paper.size, 'white')).convert('L').point(lambda v: 255 if v > 24 else 0).getbbox()
                   assert bounds
-                  logo = paper.crop(bounds)
+                  logo = paper
                   logo.thumbnail((540, 280), Image.Resampling.LANCZOS)
                   logo.save(out / (name.split('.')[0] + '.png'), optimize=True)
                   print(name, logo.size)
