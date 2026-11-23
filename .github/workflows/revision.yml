@@ -1,33 +1,61 @@
-name: Revisar fuentes fotográficas
+name: Preparar la revisión privada
 on:
   push:
     branches: [preparar-logotipos]
     paths: ['.github/workflows/revision.yml']
 permissions: {}
 jobs:
-  fuentes:
+  vistas:
     runs-on: ubuntu-latest
     steps:
-      - run: pip install requests beautifulsoup4
+      - run: pip install requests beautifulsoup4 Pillow cryptography pymupdf
       - shell: python
         run: |
-          import requests, bs4, re, json, concurrent.futures
-          from urllib.parse import urljoin
-          pages = {"5":["https://museutapies.org/es/activitat/laboratorio-de-mediaciones/","https://culturacomunitaria.es/images/f/f2/AMECUM-Rehacer-Expandir-Mediacion-Cultural.pdf"],"6":["https://www.ujaen.es/departamentos/didcie/node/4396","https://investigacion.ujaen.es/investigadores/192101/colaboracion/investigador/4484744"],"8":["https://www.uji.es/institucional/estructura/personal/?p_profesor=9105"],"12":["https://www.angel-network.net/member/1162","https://die.udistrital.edu.co/comunidad/marta_estelles_frade","https://www.bera.ac.uk/person/marta-estelles"],"13":["https://brujula.ual.es/authors/3703.html"],"14":["https://ira.pucp.edu.pe/grupo-de-investigacion/grupo-historia-para-maestros/"],"15":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/carmen-rosa-garcia-ruiz/","https://www.uma.es/departments/teachers/cnMyUEZHZHFPdEc4MDNpWlhnSVZxZz09/facultad-de-ciencias-de-la-educacion/"],"16":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/elisa-navarro-medina/"],"17":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/nicolas-de-alba-fernandez/"],"18":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/noelia-perez-rodriguez/"],"19":["https://www.ipl.pt/agenda/lancamento-do-livro-de-alfredo-gomes-dias"],"20":["https://ceg.igot.ulisboa.pt/pessoas/maria-joao-hortas"],"21":["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/jose-luis-zorrilla-luque/"],"24":["https://profesorado.unex.es/centro/pdi/?personid=15dfbf9f258b124bd24319767deb05f8"],"26":["https://sites.google.com/view/decerc-gm/eng/c%C3%B2pia-de-la-p%C3%A0gina-proyecto/c%C3%B2pia-de-la-p%C3%A0gina-equipo"],"27":["https://despecificas.unizar.es/personal/arasy-gonzalez-milea","https://janovas.unizar.es/sideral/sid900perfilPublico.faces?id=arasy-gonzalez-milea"],"30":["https://webs.uab.cat/gredics/miembros-del-equipo/"]}
-          def inspect(item):
-              i,url=item
+          import base64, io, json, os, requests, concurrent.futures, fitz
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin, unquote
+          from PIL import Image, ImageOps
+          from cryptography.hazmat.primitives import hashes, serialization
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          pub=serialization.load_pem_public_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2hSGhw533dAg+8/wCDVz\nKmak7BMVJTbEMu4GWB7SjiMUcPlJNTKe76MkoEjdJwoNXe8z41wQwRVnAcjaXs8/\nBbRFv9SLdL8Uaiddyt3Do3ofdZQHxGDOxTJrI6QIvfYZQnmPjO5t+4PeQORgW1x7\ne2x3GjXP6uwSjRMdeHFOO1nR3+yQE+c2HiFmOSpsvdguY0tY1REnXxRBq8vkLlnl\nefXIh18RZIqKLdB9lWl4dogEN0jC5dA+y7MpFinf5EZfJWfcuD/B4X+JzX8ObtCd\nRNB7BHNKjFm5Q0WjqUFTp1clvhxawXtfcpkTV9r8f3pJ8Sa/DgP8SDfH6nVoXOu5\nQwIDAQAB\n-----END PUBLIC KEY-----\n".encode())
+          items=[[0,["https://www.ubu.es/seminario-internacional-integrated-teaching-specific-didactics-potentialities-and-challenges-transdisciplinary-integration-resolution-contemporary-social-problems/programa/antoni","https://www.ubu.es/sites/default/files/portal_page/images/antoni.png"]],[1,["https://portalrecerca.uab.cat/es/persons/m-neus-gonzalez-monfort/","https://portalrecerca.uab.cat/files-asset/104813426/WhatsApp_Image_2020_12_04_at_00.05.40.jpeg?f=jpg&w=160"]],[2,["https://webs.uab.cat/gredics/jordi-castellvi-mata/","https://webs.uab.cat/gredics/wp-content/uploads/sites/63/2023/05/Co%CC%80pia-de_-3776e146-b80d-4fa7-8d14-3b46fbf25813.jpg"]],[3,["https://www.unir.net/profesores/carmen-escribano-munoz/","https://www.unir.net/wp-content/uploads/claustro/carmen-escribano-munoz-6062342.jpeg"]],[4,["https://www3.gobiernodecanarias.org/medusa/ecoescuela/eventos/i-jornadas-francofonas-2026-enseigner-et-apprendre-en-francais/ponentes_jf26/entry/11227/","https://www3.gobiernodecanarias.org/medusa/ecoescuela/eventos/files/formidable/7/fotografia-beatriz-andreu.jpeg"]],[5,["https://almazuela.org/comunidades-patrimoniales-almazuela-en-el-congreso-internacional-educacion-patrimonial/","MYRIAM"]],[6,["https://www.ujaen.es/departamentos/didcie/node/4396","https://www.ujaen.es/departamentos/didcie/sites/departamento_didcie/files/styles/contact_photo/public/uploads/consuelo_diez.jpg?itok=cXblrauu"]],[7,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/elena-montejo-palacios/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2023/06/Imagen-de-WhatsApp-2023-06-28-a-las-18.45.47-Elena-Montejo-Palacios-900x900.jpg"]],[8,["https://webs.uab.cat/gredics/miembros-del-equipo/","https://i.imgur.com/G5fFfI2.png"]],[9,["https://www.coursera.org/instructor/~70681119","https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https%3A//coursera-instructor-photos.s3.amazonaws.com/db/07718d45f94cc4986528c8172f9c33/Mariona-Massip.jpg?auto=format%2Ccompress&dpr=1&h=200&w=200"]],[10,["https://cafeconciencia.fundaciondescubre.es/protagonistas/maria-dolores-jimenez-martinez/","https://cafeconciencia.fundaciondescubre.es/files/2024/11/Maria-Dolores-Jimenez_UAL-150x150.jpg"]],[11,["https://www.unir.net/profesores/nuria-aris-redo/","https://www.unir.net/wp-content/uploads/claustro/nuria-aris-redo-4886-3.jpg"]],[12,["https://die.udistrital.edu.co/comunidad/marta_estelles_frade","https://die.udistrital.edu.co/sites/default/files/styles/foto_80x105/public/doctorado_ud/imagenes/marta_estelles_frade.jpeg?itok=Q83uRq5n"]],[13,["https://www.youtube.com/watch?v=T-j8jdHSnnY","https://i.ytimg.com/vi/T-j8jdHSnnY/hqdefault.jpg"]],[15,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/carmen-rosa-garcia-ruiz/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2022/07/CARMENROSA-250x250.jpg"]],[16,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/elisa-navarro-medina/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2025/09/732F8058-8B7C-4C98-A6FB-8BA8C1720B8D_anonymous-250x250.jpg"]],[17,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/nicolas-de-alba-fernandez/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2025/09/citations_anonymous-250x250.jpg"]],[18,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/noelia-perez-rodriguez/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2025/09/Imagen1-4-250x250.jpg"]],[19,["https://www.alfredogdias.com/","PERSONAL"]],[20,["https://ceg.igot.ulisboa.pt/pessoas/maria-joao-hortas","https://ceg.igot.ulisboa.pt/sites/default/files/styles/foto_pessoa/public/users/pictures/2023-07/310-fabf716ef0f36fb8f01a9043ec56a5fe.jpg.png?itok=_Z0OFbr2"]],[21,["https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/jose-luis-zorrilla-luque/","https://lanochedelosinvestigadores.fundaciondescubre.es/files/2022/07/JOSELUISZORRILLA-250x250.jpg"]],[22,["https://webs.uab.cat/gredics/joan-llusa-serra/","https://webs.uab.cat/gredics/wp-content/uploads/sites/63/2018/09/joan.png"]],[23,["https://www.coursera.org/instructor/~70681064","https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https%3A//coursera-instructor-photos.s3.amazonaws.com/7e/3134a7107f4c5b9fd3a5102a4f51e4/Gustavo-Gonzalez.jpg?auto=format%2Ccompress&dpr=1&h=200&w=200"]],[24,["https://docentes.us.es/index.php?id_fichero=93143e6657c0f3e1cd6806bccd559cca&page=comun%2Ff_descargar","PDF"]],[25,["https://urecerca.uvic.cat/CawDOS/jsf/seleccionActividades/seleccionActividades.jsf?elmeucv=N&id=6882341f30634ff4&idioma=ca&tipo=activ","https://campus.uvic.cat/imatges/fotos//223826.jpg"]],[26,["https://sites.google.com/view/decerc-gm/eng/c%C3%B2pia-de-la-p%C3%A0gina-proyecto/c%C3%B2pia-de-la-p%C3%A0gina-equipo","https://sites.google.com/sitesv-images-rt/AMxu72vCIHIpYpg6mcRhxu11lt40E2kQp_KNE4xLz9H18b6ZnLTrL06CkVCwSklHF0X9jCbjpi3kVo8yNhzqin4xGPi52Qw4LdCBsavzM88iQSbY_27w5m1P86kuyClU0AIrQUUGupATjjM8Dn88kBRuMqfxuEQklOp__08FiKeFeN_tZTu4-09-vX7ViluAbSivaoPwcj6PnUW9UN_m-wPZE-69oIy56leWHNmIqyxUHYQ%3Dw1280"]],[28,["https://publicacions.iec.cat/repository/pdf/00000489/00000098.pdf","PDF"]],[29,["https://research.manchester.ac.uk/en/persons/edda-sant/","https://research.manchester.ac.uk/files-asset/275234824/tempImagewdSHXO.jpg?f=jpg&w=160"]]]
+          def get(u):
+              r=requests.get(u,timeout=20,headers={'User-Agent':'Mozilla/5.0 (compatible; academic project photo review)'})
+              r.raise_for_status()
+              return r
+          def fetch(it):
+              i,(p,u)=it
               try:
-                  r=requests.get(url,timeout=14)
-                  if r.status_code!=200 or 'html' not in r.headers.get('Content-Type',''): return [i,url,r.status_code,[]]
-                  doc=bs4.BeautifulSoup(r.content,'html.parser')
-                  rows=[]
-                  for tag in doc.select('meta[property="og:image"],img,[style*="url("]'):
-                      src=tag.get('data-src') or tag.get('src') or tag.get('content') or (re.findall(r'url\([\x22\x27]?([^\x22\x27)]+)',tag.get('style','')) or [''])[0]
-                      if not src or src.startswith('data:') or re.search(r'logo|footer|icono|avatar-default|sin-foto|/icon/|cabecera|facebook|loading|twitter|wp-smiley|banner-|/pixel|sello',src,re.I): continue
-                      parent=tag.parent.parent if tag.parent and tag.parent.parent else tag
-                      rows.append([urljoin(r.url,src),tag.get('alt','')[:85],parent.get_text(' ',strip=True)[:100]])
-                  return [i,url,200,rows[:100]]
-              except Exception as e: return [i,url,str(e)[:160],[]]
-          with concurrent.futures.ThreadPoolExecutor(12) as pool:
-              for row in pool.map(inspect,[(i,u) for i,urls in pages.items() for u in urls]):
-                  print('CANDIDATES='+json.dumps(row,ensure_ascii=True))
+                  if i==26:
+                      soup=BeautifulSoup(get(p).content,'html.parser')
+                      t=soup.find(string=lambda v:v and 'Fco Javier Jaraíz Cabanillas' in v)
+                      u=t.find_previous('img')['src']
+                  if i==5:
+                      soup=BeautifulSoup(get(p).content,'html.parser')
+                      u=soup.find('img',alt=lambda x:x and 'Myriam' in x)['src']
+                  if i==19:
+                      soup=BeautifulSoup(get(p).content,'html.parser')
+                      imgs=[(img.get('data-src') or img.get('src',''),img.get('alt','')) for img in soup.select('img')]
+                      print('ALFREDO '+str(imgs)[:2200])
+                      u=next(u for u,al in imgs if 'alfredo' in (u+' '+al).lower() and not 'logo' in u.lower())
+                  if u=='PDF':
+                      doc=fitz.open(stream=get(p).content,filetype='pdf')
+                      arr=doc[0].get_images(full=True)
+                      print('PDFIMGS',i,[(x[0],x[2],x[3]) for x in arr])
+                      for ix,x in enumerate(arr):
+                          if min(x[2],x[3])<45:continue
+                          encode(str(i)+'_'+str(ix),doc.extract_image(x[0])['image'])
+                      return
+                  if 'cloudfront.net/api/utilities/v1/imageproxy/' in u: u=unquote(u.split('imageproxy/')[1].split('?')[0])
+                  encode(str(i),get(u).content)
+              except Exception as e: print('FAILED',i,str(e)[:140])
+          def encode(label,raw):
+              im=ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert('RGB')
+              im.thumbnail((360,360))
+              buff=io.BytesIO()
+              im.save(buff,format='JPEG',quality=84)
+              k=os.urandom(32); iv=os.urandom(12)
+              enc=pub.encrypt(k,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))+iv+AESGCM(k).encrypt(iv,buff.getvalue(),None)
+              print('REVIEW_'+label+'='+base64.b64encode(enc).decode())
+          with concurrent.futures.ThreadPoolExecutor(10) as pool:list(pool.map(fetch,items))
