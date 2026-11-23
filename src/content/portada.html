@@ -4,7 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CCD-EP · Competencias de Cultura Democrática en Educación Primaria</title>
 <meta name="description" content="Investigamos cómo se desarrollan las competencias de cultura democrática en la educación primaria y en la formación inicial del profesorado.">
-<link rel="stylesheet" href="./estils.css">
+<link rel="stylesheet" href="./estils.css?v=grid-5x3-20261124">
+<style>
+#universidades > ul.universidades {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-flow:row;}
+#universidades > ul.universidades > li {min-width:0;}
+#universidades .universidades a {min-width:0;overflow-wrap:anywhere;}
+@media (max-width:600px) {#universidades > ul.universidades {grid-template-columns:repeat(2,minmax(0,1fr));}}
+</style>
 </head>
 <body id="inici"><a class="skip" href="#principal">Saltar al contenido</a>
 <header><a class="marca" href="#inici"><span class="segell" aria-hidden="true">◒</span> CCD-EP</a><nav aria-label="Navegación principal"><a href="#projecte">Proyecto</a><a href="#ambits">Ámbitos</a><a href="#metode">Metodología</a><a href="#equip">Equipo</a><a href="#universidades">Instituciones</a></nav></header>
