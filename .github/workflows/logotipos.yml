@@ -19,7 +19,7 @@ jobs:
           from PIL import Image, ImageChops
           out = pathlib.Path('public/universidades')
           out.mkdir(exist_ok=True)
-          for name, url in [["coe.png","https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_Consejo_de_Europa.png"]]:
+          for name, url in [["uma.png","https://www.uma.es/servicio-comunicacion/navegador_de_ficheros/Marcas-UMA/descargar/Marca%20Universidad%20de%20M%C3%A1laga/PNG%20TRANSPARANTE%20MARCA%20UNIVERSIDAD%20DE%20M%C3%81LAGA/MARCA%20UNIVERSIDAD%20HORIZONTAL%20POSITIVO.png"]]:
               try:
                   request = urllib.request.Request(url, headers={'User-Agent': 'CCD-EP academic project (https://github.com/jordicastellvimata-spec/ccd-ep)'})
                   with urllib.request.urlopen(request, timeout=15) as response:
