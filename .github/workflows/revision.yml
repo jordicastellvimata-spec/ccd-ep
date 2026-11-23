@@ -19,29 +19,17 @@ jobs:
           from cryptography.hazmat.primitives.asymmetric import padding
           from cryptography.hazmat.primitives.ciphers.aead import AESGCM
           pub=serialization.load_pem_public_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2hSGhw533dAg+8/wCDVz\nKmak7BMVJTbEMu4GWB7SjiMUcPlJNTKe76MkoEjdJwoNXe8z41wQwRVnAcjaXs8/\nBbRFv9SLdL8Uaiddyt3Do3ofdZQHxGDOxTJrI6QIvfYZQnmPjO5t+4PeQORgW1x7\ne2x3GjXP6uwSjRMdeHFOO1nR3+yQE+c2HiFmOSpsvdguY0tY1REnXxRBq8vkLlnl\nefXIh18RZIqKLdB9lWl4dogEN0jC5dA+y7MpFinf5EZfJWfcuD/B4X+JzX8ObtCd\nRNB7BHNKjFm5Q0WjqUFTp1clvhxawXtfcpkTV9r8f3pJ8Sa/DgP8SDfH6nVoXOu5\nQwIDAQAB\n-----END PUBLIC KEY-----\n".encode())
-          items=[[19,"https://ceg.igot.ulisboa.pt/pessoas/alfredo-gomes-dias"],[24,"https://webs.uab.cat/gredics/miembros-del-equipo/"],[25,"https://www.uvic.cat/sites/default/files/professorat_grau_cafe_170208.pdf"]]
+          items=[(25,"https://about.me/joancallarisa")]
           def get(u):
               r=requests.get(u,timeout=20,headers={'User-Agent':'Mozilla/5.0 (compatible; academic project photo review)'})
               r.raise_for_status()
               return r
           def fetch(it):
               i,p=it
-              try:
-                  if i==25:
-                      doc=fitz.open(stream=get(p).content,filetype='pdf')
-                      page=next(pg for pg in doc if 'joan.callarisa@' in pg.get_text().lower())
-                      for ix,x in enumerate(page.get_images(full=True)):
-                          if min(x[2],x[3])>=60: encode(str(i)+'_'+str(ix),doc.extract_image(x[0])['image'])
-                  else:
-                      s=BeautifulSoup(get(p).content,'html.parser')
-                      if i==24:
-                          row=next(t for t in s.select('tr') if 'Carretero' in t.get_text())
-                          im=row.select_one('img')
-                      else:
-                          im=next(t for t in s.select('img') if '/users/pictures/' in t.get('src',''))
-                      src=im['src']
-                      encode(str(i),base64.b64decode(src.split('base64,')[-1]) if 'base64,' in src else get(urljoin(p,src)).content)
-              except Exception as e: print('FAILED',i,str(e)[:100])
+              s=BeautifulSoup(get(p).content,'html.parser')
+              img=s.find('meta',property='og:image')['content']
+              print('SOURCE',img[:160])
+              encode(str(i),get(img).content)
           def encode(label,raw):
               im=ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert('RGB')
               im.thumbnail((360,360))
