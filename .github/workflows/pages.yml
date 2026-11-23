@@ -32,3 +32,33 @@ jobs:
           grep -q 'PID2024-160676OB-I00' "$RUNNER_TEMP/portada.html"
           curl --retry 6 --retry-all-errors -fsSL https://jordicastellvimata-spec.github.io/ccd-ep/financiacion.png -o "$RUNNER_TEMP/logos.png"
           file "$RUNNER_TEMP/logos.png" | grep -q 'PNG image data'
+
+      - name: Comprobar el equipo y los logotipos publicados
+        run: |
+          base="https://jordicastellvimata-spec.github.io/ccd-ep"
+          curl --retry 5 --retry-all-errors -fsSL "$base/?v=$GITHUB_SHA" -o "$RUNNER_TEMP/equipo.html"
+          python - "$RUNNER_TEMP/equipo.html" "$base" <<'PY'
+          from concurrent.futures import ThreadPoolExecutor
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.request import urlopen
+          import sys
+          class Logos(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.files = set()
+              def handle_starttag(self, tag, attrs):
+                  src = dict(attrs).get("src", "")
+                  if tag == "img" and src.startswith("./universidades/"):
+                      self.files.add(src[2:])
+          html = Path(sys.argv[1]).read_text()
+          logos = Logos()
+          logos.feed(html)
+          assert len(logos.files) == 14
+          assert all(f'id="grupo-{n}"' in html for n in range(1, 5))
+          def verify(path):
+              with urlopen(sys.argv[2] + "/" + path, timeout=30) as response:
+                  assert response.read(8) == b"\x89PNG\r\n\x1a\n", path
+          with ThreadPoolExecutor(max_workers=4) as pool:
+              list(pool.map(verify, logos.files))
+          PY
