@@ -54,7 +54,7 @@ jobs:
           html = Path(sys.argv[1]).read_text()
           logos = Logos()
           logos.feed(html)
-          assert len(logos.files) == 14
+          assert len(logos.files) == 15 and 'universidades/coe.png' in logos.files
           assert all(f'id="grupo-{n}"' in html for n in range(1, 5))
           def verify(path):
               with urlopen(sys.argv[2] + "/" + path, timeout=30) as response:
